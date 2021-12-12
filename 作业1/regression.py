@@ -4,12 +4,11 @@ import torch
 from torch import nn
 
 
-def linear_regression(x, y, test_x, test_y, D_inputs=49, D_outputs=7, epoch=10001, temp='none', lr=0.0001):
+def linear_regression(x, y, D_inputs, D_outputs, epoch=5000, lr=0.001):
     # 构建模型
     model = nn.Sequential(nn.Linear(D_inputs, D_outputs))
     loss_fn = nn.MSELoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=lr)
-    print(temp)
     # 训练模型
     for t in range(epoch):
         # train_set
@@ -18,30 +17,30 @@ def linear_regression(x, y, test_x, test_y, D_inputs=49, D_outputs=7, epoch=1000
         loss = loss_fn(y_pred, y)
         loss.backward()
 
-        # test_set
-        y_pred_test = model(test_x)
-        test_loss = loss_fn(y_pred_test, test_y)
-
         # 参数更新
         with torch.no_grad():  # 参数更新方式
             for parm in model.parameters():
                 parm -= lr * parm.grad
         if t % 100 == 0:
-            print('iter: {}\ttrain_loss: {}\ttest_loss: {}'.format(t, loss, test_loss))
+            print('iter: {}\ttrain_loss: {}\t'.format(t, loss))
 
-    out = model(x[666, :])
-    out_pred = model(test_x[-1, :])
-    print(out)
-    print(y[666])
-    print('pred:{}'.format(out_pred))
-    torch.save(model.state_dict(), '{}.pt'.format(temp))
+    torch.save(model.state_dict(), 'train1.pt')
+    print(model.state_dict())
     return
 
 
-file = 'train1'
-train_df = pd.read_excel(file + 'xlsx', header=None, index_col=None)
-train_x = np.array((train_df))
-train_x = train_x.astype(float)
-train_x = torch.from_numpy(train_x)
-train_x = torch.tensor(train_x, dtype=torch.float32)
+train_df = pd.read_excel('train1-result.xlsx', header=None, index_col=None)
+train_x1 = np.array((train_df))
+train_x1 = train_x1.astype(float)
+train_x1 = torch.from_numpy(train_x1)
+train_x1 = torch.tensor(train_x1, dtype=torch.float32)
+train_df = pd.read_excel('train2-result.xlsx', header=None, index_col=None)
+train_x2 = np.array((train_df))
+train_x2 = train_x2.astype(float)
+train_x2 = torch.from_numpy(train_x2)
+train_x2 = torch.tensor(train_x2, dtype=torch.float32)
+train_y = np.array(pd.read_excel('preprocessed.xlsx', header=None, index_col=None))
+train_y1 = torch.tensor(torch.from_numpy(train_y[2:, -2].astype(float)), dtype=torch.float32).resize(138, 1)/10
+train_y2 = torch.tensor(torch.from_numpy(train_y[2:, -1].astype(float)), dtype=torch.float32).resize(138, 1)/10
 
+linear_regression(train_x1, train_y1, 35, 1)
