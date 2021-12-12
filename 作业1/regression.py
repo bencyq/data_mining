@@ -13,16 +13,19 @@ def linear_regression(x, y, D_inputs, D_outputs, epoch=5000, lr=0.001):
     for t in range(epoch):
         # train_set
         model.zero_grad()  # 梯度清零
-        y_pred = model(x)
-        loss = loss_fn(y_pred, y)
+        y_pred = model(x[:-10, :])
+        loss = loss_fn(y_pred, y[:-10, :])
         loss.backward()
 
+        # test_set
+        y_test_pred = model(x[-10:, :])
+        test_loss = loss_fn(y_test_pred, y[-10:, :])
         # 参数更新
         with torch.no_grad():  # 参数更新方式
             for parm in model.parameters():
                 parm -= lr * parm.grad
         if t % 100 == 0:
-            print('iter: {}\ttrain_loss: {}\t'.format(t, loss))
+            print(f'iter: {t}\ttrain_loss: {loss}\ttest_loss: {test_loss}')
 
     torch.save(model.state_dict(), 'train1.pt')
     print(model.state_dict())
@@ -40,7 +43,7 @@ train_x2 = train_x2.astype(float)
 train_x2 = torch.from_numpy(train_x2)
 train_x2 = torch.tensor(train_x2, dtype=torch.float32)
 train_y = np.array(pd.read_excel('preprocessed.xlsx', header=None, index_col=None))
-train_y1 = torch.tensor(torch.from_numpy(train_y[2:, -2].astype(float)), dtype=torch.float32).resize(138, 1)/10
-train_y2 = torch.tensor(torch.from_numpy(train_y[2:, -1].astype(float)), dtype=torch.float32).resize(138, 1)/10
+train_y1 = torch.tensor(torch.from_numpy(train_y[2:, -2].astype(float)), dtype=torch.float32).resize(138, 1) / 10
+train_y2 = torch.tensor(torch.from_numpy(train_y[2:, -1].astype(float)), dtype=torch.float32).resize(138, 1) / 10
 
 linear_regression(train_x1, train_y1, 35, 1)
